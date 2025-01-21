@@ -22,3 +22,7 @@ To build the initial version of the database, run the following from the command
 make download-data
 make build
 ```
+
+The target database named `eved.sqlite` is generated to the local `data` folder.
+It is a relatively large file with approximately 4 GiB in size.
+

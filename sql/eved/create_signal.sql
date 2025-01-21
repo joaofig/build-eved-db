@@ -35,5 +35,6 @@ CREATE TABLE IF NOT EXISTS signal
     speed_limit_direct INTEGER,
     intersection       INTEGER,
     bus_stop           INTEGER,
-    focus_points       TEXT
+    focus_points       TEXT,
+    h3_12              INTEGER
 );

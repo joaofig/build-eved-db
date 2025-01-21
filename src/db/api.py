@@ -1,5 +1,7 @@
 import sqlite3
 import contextlib
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 import pandas.io.sql as sqlio
@@ -75,3 +77,20 @@ class BaseDb(object):
         sql = "SELECT name FROM sqlite_master WHERE type='table'"
         tables = set([table[0] for table in self.query(sql)])
         return table_name in tables
+
+    def ddl_script(self, filename: str) -> None:
+        with open(filename, "r") as f:
+            sql = f.read()
+            self.execute_sql(sql)
+
+    def insert_list(self, filename: str, values: List[Tuple]) -> None:
+        conn = self.connect()
+        cur = conn.cursor()
+
+        with open(filename, "r") as f:
+            sql = f.read()
+            cur.executemany(sql, values)
+
+        conn.commit()
+        cur.close()
+        conn.close()
