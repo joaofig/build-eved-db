@@ -39,6 +39,10 @@ class BaseDb(object):
         conn.close()
         return df
 
+    def query_json(self, sql, parameters=None) -> str:
+        df = self.query_df(sql, parameters)
+        return df.to_json(orient="records")
+
     def query(self, sql, parameters=None):
         if parameters is None:
             parameters = []

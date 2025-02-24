@@ -1,7 +1,6 @@
 import pandas as pd
 
 from os import path
-from typing import List, Tuple
 from src.config import load_config
 from src.db.api import BaseDb
 
@@ -12,7 +11,7 @@ class EvedDb(BaseDb):
         database = config.get("database")
         filename = path.join(
             database.get("folder", "./data/eved.db"),
-            database.get("eved", "eved.sqlite")
+            database.get("eved", "eved.sqlite"),
         )
         super().__init__(db_name=filename)
 
@@ -27,10 +26,30 @@ class EvedDb(BaseDb):
         self.ddl_script("sql/eved/insert_trajectories.sql")
         self.ddl_script("sql/eved/create_trajectory_vehicle_index.sql")
 
-    def get_trajectories(self) -> List[int]:
-        sql = "SELECT traj_id FROM trajectory"
-        return [r[0] for r in self.query(sql)]
-
     def get_vehicles(self) -> pd.DataFrame:
         sql = "SELECT vehicle_id, vehicle_type, vehicle_class FROM vehicle"
         return self.query_df(sql)
+
+    def get_trajectories(self) -> pd.DataFrame:
+        sql = "SELECT traj_id, vehicle_id, trip_id FROM trajectory"
+        return self.query_df(sql)
+
+    def get_vehicle_trajectories(self, vehicle_id: int) -> pd.DataFrame:
+        sql = "SELECT traj_id, vehicle_id, trip_id"
+        return self.query_df(sql, parameters=[vehicle_id])
+
+    def get_trajectory(self, traj_id: int) -> pd.DataFrame:
+        sql = """
+        SELECT      s.signal_id
+        ,           s.vehicle_id
+        ,           s.day_num
+        ,           s.time_stamp
+        ,           s.latitude
+        ,           s.longitude   
+        ,           s.match_latitude
+        ,           s.match_longitude
+        FROM        signal s
+        INNER JOIN  trajectory t ON s.vehicle_id = t.vehicle_id AND s.trip_id = t.trip_id
+        WHERE       t.traj_id = ?
+        """
+        return self.query_df(sql, parameters=[traj_id])
