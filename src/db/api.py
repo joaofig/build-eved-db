@@ -87,7 +87,7 @@ class BaseDb(object):
             sql = f.read()
             self.execute_sql(sql)
 
-    def insert_list(self, filename: str, values: List[Tuple]) -> None:
+    def insert_list(self, filename: str, values: List) -> None:
         conn = self.connect()
         cur = conn.cursor()
 

@@ -1,8 +1,14 @@
+from typing import Tuple
+
+import numpy as np
 import pandas as pd
 
 from os import remove
 from zipfile import ZipFile
 from tqdm import tqdm
+from datetime import datetime, timedelta
+from pytz import timezone
+from src.common.geomath import vec_haversine
 from src.db.EvedDb import EvedDb
 import h3.api.numpy_int as h3
 
@@ -88,7 +94,42 @@ def read_csv(filename: str) -> pd.DataFrame:
         "Bus Stops": float,
         "Focus Points": str,
     }
-    return pd.read_csv(filename, usecols=columns, dtype=types)
+    df = pd.read_csv(filepath_or_buffer=filename,
+                     usecols=np.array(columns),
+                     dtype=types)
+    return df
+
+
+
+def get_trajectory_properties(traj_id: int) -> Tuple[float, float, datetime, datetime, int]:
+    db = EvedDb()
+    traj_df = db.get_trajectory(traj_id)
+    points = traj_df[["match_latitude", "match_longitude"]].values
+    length_m = vec_haversine(points[:-1, 0], points[:-1, 1],
+                             points[1:, 0], points[1:, 1]).sum()
+    base_dt = datetime(year=2017, month=11, day=1, tzinfo=timezone("America/Detroit"))
+    day_num = traj_df["day_num"].iloc[0]
+    dt_ini = base_dt + timedelta(days=day_num - 1) + timedelta(milliseconds=int(traj_df["time_stamp"].iloc[0]))
+    dt_end = base_dt + timedelta(days=day_num - 1) + timedelta(milliseconds=int(traj_df["time_stamp"].iloc[-1]))
+    return length_m, (dt_end - dt_ini).total_seconds(), dt_ini, dt_end, traj_id
+
+
+def update_trajectories() -> None:
+    db = EvedDb()
+    df = db.get_trajectories()
+    trajectories = df["traj_id"].tolist()
+
+    props = [get_trajectory_properties(traj_id) for traj_id in tqdm(trajectories)]
+
+    sql = """
+    UPDATE      trajectory
+    SET         length_m = ?
+    ,           duration_s = ?
+    ,           dt_ini = ?
+    ,           dt_end = ?
+    WHERE       traj_id = ?
+    """
+    db.execute_sql(sql, parameters=props, many=True)
 
 
 def build_signals() -> None:
@@ -127,3 +168,4 @@ def build_signals() -> None:
 
     if not db.table_exists("trajectory"):
         db.create_trajectories()
+        update_trajectories()

@@ -26,12 +26,27 @@ class EvedDb(BaseDb):
         self.ddl_script("sql/eved/insert_trajectories.sql")
         self.ddl_script("sql/eved/create_trajectory_vehicle_index.sql")
 
+    def create_node(self):
+        self.ddl_script("sql/eved/create_node.sql")
+        self.ddl_script("sql/eved/create_ix_node_traj_id.sql")
+        self.ddl_script("sql/eved/create_ix_node_h3_12.sql")
+
     def get_vehicles(self) -> pd.DataFrame:
         sql = "SELECT vehicle_id, vehicle_type, vehicle_class FROM vehicle"
         return self.query_df(sql)
 
     def get_trajectories(self) -> pd.DataFrame:
-        sql = "SELECT traj_id, vehicle_id, trip_id FROM trajectory"
+        sql = """
+        SELECT  traj_id
+        ,       vehicle_id
+        ,       trip_id
+        ,       length_m
+        ,       duration_s
+        ,       dt_ini
+        ,       dt_end
+        ,       ROUND(length_m / 1000.0, 1) as km
+        FROM    trajectory
+        """
         return self.query_df(sql)
 
     def get_vehicle_trajectories(self, vehicle_id: int) -> pd.DataFrame:

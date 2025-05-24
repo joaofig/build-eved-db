@@ -20,9 +20,17 @@ To build the initial version of the database, run the following from the command
 
 ```shell
 make download-data
-make build
+make build-signals
 ```
 
-The target database named `eved.sqlite` is generated to the local `data` folder.
+The target database named `eved.db` is generated to the local `data` folder.
 It is a relatively large file with approximately 4 GiB in size.
 
+## Map-Matching
+
+The map-matching process generates polylines for each trip using the map nodes of the map-matched segments.
+
+
+```shell
+make build-nodes
+```
