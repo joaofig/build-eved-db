@@ -31,6 +31,10 @@ class EvedDb(BaseDb):
         self.ddl_script("sql/eved/create_ix_node_traj_id.sql")
         self.ddl_script("sql/eved/create_ix_node_h3_12.sql")
 
+    def delete_node(self):
+        sql = "delete from node"
+        self.execute_sql(sql)
+
     def get_vehicles(self) -> pd.DataFrame:
         sql = "SELECT vehicle_id, vehicle_type, vehicle_class FROM vehicle"
         return self.query_df(sql)

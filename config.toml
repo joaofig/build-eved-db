@@ -1,4 +1,4 @@
 [database]
-folder_="/Users/joafigu/data/eved"
-folder="./data"
+folder="/Users/joaofig/data/eved"
+folder_="./data"
 eved="eved.db"
