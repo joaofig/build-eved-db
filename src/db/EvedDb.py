@@ -25,6 +25,8 @@ class EvedDb(BaseDb):
         self.ddl_script("sql/eved/create_trajectory.sql")
         self.ddl_script("sql/eved/insert_trajectories.sql")
         self.ddl_script("sql/eved/create_trajectory_vehicle_index.sql")
+        self.ddl_script("sql/eved/create_trajectory_h3_12_ini_index.sql")
+        self.ddl_script("sql/eved/create_trajectory_h3_12_end_index.sql")
 
     def create_node(self):
         self.ddl_script("sql/eved/create_node.sql")

@@ -100,8 +100,7 @@ def read_csv(filename: str) -> pd.DataFrame:
     return df
 
 
-
-def get_trajectory_properties(traj_id: int) -> Tuple[float, float, datetime, datetime, int]:
+def get_trajectory_properties(traj_id: int) -> Tuple[float, float, datetime, datetime, int, int, int]:
     db = EvedDb()
     traj_df = db.get_trajectory(traj_id)
     points = traj_df[["match_latitude", "match_longitude"]].values
@@ -111,7 +110,9 @@ def get_trajectory_properties(traj_id: int) -> Tuple[float, float, datetime, dat
     day_num = traj_df["day_num"].iloc[0]
     dt_ini = base_dt + timedelta(days=day_num - 1) + timedelta(milliseconds=int(traj_df["time_stamp"].iloc[0]))
     dt_end = base_dt + timedelta(days=day_num - 1) + timedelta(milliseconds=int(traj_df["time_stamp"].iloc[-1]))
-    return length_m, (dt_end - dt_ini).total_seconds(), dt_ini, dt_end, traj_id
+    h3_ini = h3.latlng_to_cell(traj_df["match_latitude"].iloc[0], traj_df["match_longitude"].iloc[0], 12)
+    h3_end = h3.latlng_to_cell(traj_df["match_latitude"].iloc[-1], traj_df["match_longitude"].iloc[-1], 12)
+    return length_m, (dt_end - dt_ini).total_seconds(), dt_ini, dt_end, int(h3_ini), int(h3_end), traj_id
 
 
 def update_trajectories() -> None:
@@ -127,6 +128,8 @@ def update_trajectories() -> None:
     ,           duration_s = ?
     ,           dt_ini = ?
     ,           dt_end = ?
+    ,           h3_12_ini = ?
+    ,           h3_12_end = ?
     WHERE       traj_id = ?
     """
     db.execute_sql(sql, parameters=props, many=True)
@@ -141,7 +144,7 @@ def build_signals() -> None:
         vehicle_df = pd.concat([pd.read_excel("./data/VED_Static_Data_ICE&HEV.xlsx"),
                                 pd.read_excel("./data/VED_Static_Data_PHEV&EV.xlsx")])
         vehicle_df = vehicle_df.replace("NO DATA", None)
-        vehicles = [row for row in vehicle_df.itertuples(index=False)]
+        vehicles = [tuple(row) for row in vehicle_df.itertuples(index=False)]
         db.insert_vehicles(vehicles)
 
     if not db.table_exists("signal"):

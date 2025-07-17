@@ -5,5 +5,7 @@ CREATE TABLE trajectory (
     length_m    DOUBLE,
     dt_ini      TEXT,
     dt_end      TEXT,
-    duration_s  DOUBLE
+    duration_s  DOUBLE,
+    h3_12_ini   INTEGER,
+    h3_12_end   INTEGER
 );

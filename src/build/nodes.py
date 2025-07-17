@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from tqdm import tqdm as tqdm
 
 import pandas as pd
 import requests
@@ -117,9 +118,7 @@ def build_nodes() -> None:
         db.delete_node()
 
     traj_df = get_trajectories()
-    for traj_id in traj_df["traj_id"].to_list():
-
-        print(traj_id)
+    for traj_id in tqdm(traj_df["traj_id"].to_list()):
         try:
             traj_df = load_trajectory_points(traj_id)
             geometry = map_match(traj_df)
