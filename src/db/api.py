@@ -2,7 +2,6 @@ import sqlite3
 import contextlib
 from typing import List, Tuple
 
-import numpy as np
 import pandas as pd
 import pandas.io.sql as sqlio
 
@@ -34,8 +33,6 @@ class BaseDb(object):
     ) -> pd.DataFrame:
         conn = self.connect()
         df = sqlio.read_sql_query(sql, conn, params=parameters)
-        # if convert_none:
-        #     df.fillna(value=np.nan, inplace=True)
         conn.close()
         return df
 
