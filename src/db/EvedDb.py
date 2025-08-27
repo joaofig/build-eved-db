@@ -1,6 +1,7 @@
+from os import path
+
 import pandas as pd
 
-from os import path
 from src.config import load_config
 from src.db.api import BaseDb
 

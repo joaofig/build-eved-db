@@ -1,7 +1,7 @@
-import tomli
-
-from typing import Dict
 from pathlib import Path
+from typing import Dict
+
+import tomli
 
 
 def load_config() -> Dict:

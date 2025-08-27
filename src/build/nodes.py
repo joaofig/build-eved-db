@@ -111,8 +111,6 @@ def build_nodes() -> None:
     db = EvedDb()
 
     if not db.table_exists("node"):
-        # tiles = './valhalla/custom_files/valhalla_tiles.tar'
-        # config = get_config(tile_extract=tiles, verbose=True)
         db.create_node()
     else:
         db.delete_node()
