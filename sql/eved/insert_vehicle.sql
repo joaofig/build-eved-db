@@ -5,6 +5,5 @@ INSERT INTO vehicle (
     engine,
     transmission,
     drive_wheels,
-    weight,
-    engine_type
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    weight
+) VALUES (?, ?, ?, ?, ?, ?, ?)

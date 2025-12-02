@@ -135,18 +135,19 @@ def update_trajectories() -> None:
     db.execute_sql(sql, parameters=props, many=True)
 
 
-def build_signals() -> None:
-    db = EvedDb()
-
+def import_vehicles(db: EvedDb) -> None:
     if not db.table_exists("vehicle"):
         # Create vehicles
         db.ddl_script("sql/eved/create_vehicle.sql")
         vehicle_df = pd.concat([pd.read_excel("./data/VED_Static_Data_ICE&HEV.xlsx"),
-                                pd.read_excel("./data/VED_Static_Data_PHEV&EV.xlsx")])
-        vehicle_df = vehicle_df.replace("NO DATA", None)
+                                pd.read_excel("./data/VED_Static_Data_PHEV&EV.xlsx") \
+                               .rename(columns={"EngineType": "Vehicle Type"})])
+        vehicle_df.replace("NO DATA", None)
         vehicles = [tuple(row) for row in vehicle_df.itertuples(index=False)]
         db.insert_vehicles(vehicles)
 
+
+def import_signals(db: EvedDb) -> None:
     if not db.table_exists("signal"):
         # Create signals
         db.ddl_script("sql/eved/create_signal.sql")
@@ -156,18 +157,24 @@ def build_signals() -> None:
                 remove_semi_colon(f"data/{zip_info.filename}")
 
                 signal_df = read_csv(f"data/{zip_info.filename}")
-                signal_df["h3_12"] = signal_df.apply(
-                    lambda row: int(h3.latlng_to_cell(row["Matchted Latitude[deg]"],
-                                                      row["Matched Longitude[deg]"], 12)),
-                    axis=1)
-                signals = [row for row in signal_df.itertuples(index=False)]
+                lats = signal_df["Matchted Latitude[deg]"].to_numpy()
+                lngs = signal_df["Matched Longitude[deg]"].to_numpy()
+                h3_12 = [h3.latlng_to_cell(lat, lng, 12) for lat, lng in zip(lats, lngs)]
+                signal_df["h3_12"] = h3_12
+                signals = (row for row in signal_df.itertuples(index=False))
                 db.insert_signals(signals)
 
                 remove(f"data/{zip_info.filename}")
 
-
         db.ddl_script("sql/eved/create_signal_trip_index.sql")
         db.ddl_script("sql/eved/create_ix_signal_h3_12.sql")
+
+
+def build_signals() -> None:
+    db = EvedDb()
+
+    import_vehicles(db)
+    import_signals(db)
 
     if not db.table_exists("trajectory"):
         db.create_trajectories()
